@@ -68,7 +68,7 @@ template<typename T> struct Vector3
         z /= magnitude;
     }
 
-    void scale(const double& scale)
+    void scale(const float& scale)
     {
         x *= scale;
         y *= scale;
@@ -85,6 +85,10 @@ template<typename T> struct Vector3
         return {x - a.x, y - a.y, z - a.z};
     }
     
+    Vector3 operator+(const T& a) const
+    {
+        return {x + a, y + a, z + a};
+    }
 
     Vector3 operator-(const T& a) const
     {
@@ -94,5 +98,43 @@ template<typename T> struct Vector3
     Vector3 operator*(const T scale) const
     {
         return {x * scale, y * scale, z * scale};
+    }
+
+    Vector3& operator+=(const Vector3& a)
+    {
+        x += a.x;
+        y += a.y;
+        z += a.z;
+        return *this;
+    }
+
+    Vector3& operator-=(const Vector3& a)
+    {
+        x -= a.x;
+        y -= a.y;
+        z -= a.z;
+        return *this;
+    }
+
+    Vector3& operator+=(const T& a)
+    {
+        x += a;
+        y += a;
+        z += a;
+        return *this;
+    }
+
+    Vector3& operator-=(const T& a)
+    {
+        x -= a;
+        y -= a;
+        z -= a;
+        return *this;
+    }
+    
+    Vector3& operator*=(const T& a)
+    {
+        scale(a);
+        return *this;
     }
 };

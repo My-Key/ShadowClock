@@ -10,8 +10,8 @@
 
 class BowlWatchy : public Watchy
 {
-  using Watchy::Watchy;
 public:
+  BowlWatchy(const watchySettings& s);
   BowlWatchy();
   void drawWatchFace();
   void drawTime();
