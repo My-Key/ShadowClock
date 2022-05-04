@@ -7,11 +7,12 @@
 #include "../include/Diffuse.h"
 #include "../include/Gloss.h"
 #include "../include/BlueNoise200.h"
+#include "../include/GlossPow.h"
 
 class BowlWatchy : public Watchy
 {
+  using Watchy::Watchy;
 public:
-  BowlWatchy(const watchySettings& s);
   BowlWatchy();
   void drawWatchFace();
   void drawTime();

@@ -21,19 +21,8 @@ const Vector3<float> NORMAL_DIR = {0.0f, 0.0f, 1.0f};
 const Vector3<float> CONE_TOP = CONE_CENTER + NORMAL_DIR * CONE_HEIGHT;
 const Vector3<float> VIEW_DIR = {0.0f, 0.0f, 1.0f};
 
-const Vector3<float> MINUTE_LIGHT = {0.0f,-1.0f,0.75f};
+const Vector3<float> MINUTE_LIGHT = {0.0f,-1.0f,0.65f};
 const Vector3<float> HOUR_LIGHT = {0.0f,-0.5f,0.6f};
-
-unsigned char GLOSS_POW[256][256];
-
-BowlWatchy::BowlWatchy(const watchySettings& s) : Watchy(s)
-{  
-  for (int x = 0; x < 256; x++)
-  {
-    for (int y = 0; y < 256; y++)
-      GLOSS_POW[x][y] = pow(x / 255.0, y * 0.5) * 255;
-  }
-}
 
 void BowlWatchy::drawWatchFace()
 {
@@ -92,17 +81,22 @@ static bool PointInTriangle (const Vector3<float>& pt, const Vector3<float>& v1,
     return !has_pos;
 }
 
-static void BlinPhong(const Vector3<float>& point, const Vector3<float>& normal, const Vector3<float>& lightDir, const Vector3<float>& halfView, const int& gloss, 
+static float smoothstep(float x) {
+  // Evaluate polynomial
+  return x * x * (3 - 2 * x);
+}
+
+static void BlinnPhong(const Vector3<float>& point, const Vector3<float>& normal, const Vector3<float>& lightDir, const Vector3<float>& halfView, const int& gloss, 
 const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<float>& coneBase3, float& intensity, float& specularIntensity)
 {
   if ((point - CONE_CENTER).sqrMagnitude() > CONE_RADIUS_SQR && PointInTriangle(point, coneBase1, coneBase2, coneBase3))
     return;
 
   float NdotL = Vector3<float>::dotProduct(normal, lightDir);
-  intensity += clamp(NdotL);
+  intensity += smoothstep(clamp(NdotL));
 
   float NdotH = Vector3<float>::dotProduct(normal, halfView);
-  specularIntensity += GLOSS_POW[(int)(clamp(NdotH) * 255)][gloss];
+  specularIntensity += GlossPow[(int)(clamp(NdotH) * 255) + 256 * gloss];
 }
 
 void BowlWatchy::drawTime()
@@ -173,8 +167,8 @@ void BowlWatchy::drawTime()
       float specularIntensity = 0.0f;
       float gloss = Gloss[pixelIndex];
 
-      BlinPhong(point, normal, minuteLight, minuteHalfView, gloss, coneBaseMinute, coneBaseMinute1, coneBaseMinute2, intensity, specularIntensity);
-      BlinPhong(point, normal, hourLight, hourHalfView, gloss, coneBaseHour, coneBaseHour1, coneBaseHour2, intensity, specularIntensity);
+      BlinnPhong(point, normal, minuteLight, minuteHalfView, gloss, coneBaseMinute, coneBaseMinute1, coneBaseMinute2, intensity, specularIntensity);
+      BlinnPhong(point, normal, hourLight, hourHalfView, gloss, coneBaseHour, coneBaseHour1, coneBaseHour2, intensity, specularIntensity);
 
       bool white = (intensity * Diffuse[pixelIndex] + specularIntensity) * 0.5f > BlueNoise200[pixelIndex];
       display.drawPixel(x, y, white ? GxEPD_WHITE : GxEPD_BLACK);
