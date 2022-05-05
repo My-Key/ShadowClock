@@ -157,10 +157,9 @@ void BowlWatchy::drawTime()
 
       int pixelIndex = x + 200 * y;
       int index = pixelIndex * 3;
+
       Vector3<float> normal = {Normal[index], Normal[index + 1], Normal[index + 2]};
       normal *= NORMAL_SCALE;
-      normal -= 1.0f;
-      normal.x *= -1.0f;
       //normal.normalize();
 
       float intensity = 0.0f;

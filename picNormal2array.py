@@ -71,6 +71,8 @@ def getData(im):
 
     return binary
 
+def hex2(n):
+    return "0x%x"%(n&0xffffffff)
 
 ## Format data to output a string for C array declaration.
 # @param data   Array containing binary values
@@ -86,10 +88,10 @@ def output(data):
 	
     # Generate the output with hexadecimal values
     s = '#pragma once\n'
-    s += "const unsigned char " + filename + "[] PROGMEM = {" + '\n'
+    s += "const signed char " + filename + "[] PROGMEM = {" + '\n'
     for j in range(watchyHeight):
         for i in range(watchyWitdh):
-            s += format(data[i][j][0], '#04x') + ", " + format(data[i][j][1], '#04x') + ", " + format(data[i][j][2], '#04x') + ", "
+            s += hex((255 - data[i][j][0]) - 128) + ", " + hex(data[i][j][1] - 128) + ", " + hex(data[i][j][2] - 128) + ", "
             if ( (j * watchyWitdh + i)%16 == 15):
                 s += '\n'
     s = s[:-3] + '\n};'
