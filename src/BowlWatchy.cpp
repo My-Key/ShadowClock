@@ -14,15 +14,23 @@ const float CONE_HEIGHT = 50;
 const float WATCH_RADIUS = 98;
 const float WATCH_RADIUS_SQR = WATCH_RADIUS * WATCH_RADIUS;
 
+const float WATCH_RIM_RADIUS = 93;
+const float WATCH_RIM_RADIUS_SQR = WATCH_RIM_RADIUS * WATCH_RIM_RADIUS;
+
 const float NORMAL_SCALE = 2.0f / 255.0f;
+
+const Vector3<float> UP = {0.0f, -1.0f, 0.0f};
 
 const Vector3<float> CONE_CENTER = {99.5f, 99.5f, 0.0f};
 const Vector3<float> NORMAL_DIR = {0.0f, 0.0f, 1.0f};
 const Vector3<float> CONE_TOP = CONE_CENTER + NORMAL_DIR * CONE_HEIGHT;
 const Vector3<float> VIEW_DIR = {0.0f, 0.0f, 1.0f};
 
-const Vector3<float> MINUTE_LIGHT = {0.0f,-1.0f,0.65f};
+const Vector3<float> MINUTE_LIGHT = {0.0f,-0.75f,0.6f};
+const Vector3<float> MINUTE_LIGHT_LOW = {0.0f,-1.0f,0.6f};
+
 const Vector3<float> HOUR_LIGHT = {0.0f,-0.5f,0.6f};
+const Vector3<float> HOUR_LIGHT_LOW = {0.0f,-0.75f,0.6f};
 
 void BowlWatchy::drawWatchFace()
 {
@@ -86,7 +94,7 @@ static float smoothstep(float x) {
   return x * x * (3 - 2 * x);
 }
 
-static void BlinnPhong(const Vector3<float>& point, const Vector3<float>& normal, const Vector3<float>& lightDir, const Vector3<float>& halfView, const int& gloss, 
+static void BlinnPhong(const Vector3<float>& point, const Vector3<float>& normal, const Vector3<float>& lightDir, const Vector3<float>& halfView, const char& gloss, 
 const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<float>& coneBase3, float& intensity, float& specularIntensity)
 {
   if ((point - CONE_CENTER).sqrMagnitude() > CONE_RADIUS_SQR && PointInTriangle(point, coneBase1, coneBase2, coneBase3))
@@ -101,10 +109,12 @@ const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<
 
 void BowlWatchy::drawTime()
 {
+  float batteryRange = (getBatteryVoltage() - VOLTAGE_MIN) / VOLTAGE_RANGE;
+
   int hour = currentTime.Hour;
   int minute = currentTime.Minute;
 
-  Vector3<float> minuteLight = Vector3<float>::rotateVector(MINUTE_LIGHT, MINUTE_ANGLE * minute);
+  Vector3<float> minuteLight = Vector3<float>::rotateVector(Vector3<float>::lerp(MINUTE_LIGHT_LOW, MINUTE_LIGHT, batteryRange), MINUTE_ANGLE * minute);
   minuteLight.normalize();
 
   Vector3<float> coneBaseMinute1 = Vector3<float>::rotateVectorByRightAngle(minuteLight, 1);
@@ -119,12 +129,12 @@ void BowlWatchy::drawTime()
   coneBaseMinute2.scale(CONE_RADIUS);
   coneBaseMinute2 += CONE_CENTER;
 
-  Vector3<float> coneBaseMinute = CONE_TOP + minuteLight * (CONE_HEIGHT / Vector3<float>::dotProduct(NORMAL_DIR, minuteLight));
+  Vector3<float> coneTipMinute = CONE_TOP + minuteLight * (CONE_HEIGHT / Vector3<float>::dotProduct(NORMAL_DIR, minuteLight));
 
   Vector3<float> minuteHalfView = minuteLight + VIEW_DIR;
   minuteHalfView.normalize();
 
-  Vector3<float> hourLight = Vector3<float>::rotateVector(HOUR_LIGHT, HOUR_ANGLE * ((hour % 12) + minute/60.0) );
+  Vector3<float> hourLight = Vector3<float>::rotateVector(Vector3<float>::lerp(HOUR_LIGHT_LOW, HOUR_LIGHT, batteryRange), HOUR_ANGLE * ((hour % 12) + minute/60.0) );
   hourLight.normalize();
 
   Vector3<float> coneBaseHour1 = Vector3<float>::rotateVectorByRightAngle(hourLight, 1);
@@ -139,7 +149,7 @@ void BowlWatchy::drawTime()
   coneBaseHour2.scale(CONE_RADIUS);
   coneBaseHour2 += CONE_CENTER;
 
-  Vector3<float> coneBaseHour = CONE_TOP + hourLight * (CONE_HEIGHT / Vector3<float>::dotProduct(NORMAL_DIR, hourLight));
+  Vector3<float> coneTipHour = CONE_TOP + hourLight * (CONE_HEIGHT / Vector3<float>::dotProduct(NORMAL_DIR, hourLight));
   
   Vector3<float> hourHalfView = hourLight + VIEW_DIR;
   hourHalfView.normalize();
@@ -151,8 +161,10 @@ void BowlWatchy::drawTime()
     for (int x = 2; x < 198; x++)
     {
       Vector3<float> point = {x,y,0.0f};
+      Vector3<float> pointFromCenter = point - CONE_CENTER;
+      float pointFromCenterSqrMagnitude = pointFromCenter.sqrMagnitude();
 
-      if ((point - CONE_CENTER).sqrMagnitude() > WATCH_RADIUS_SQR)
+      if (pointFromCenterSqrMagnitude > WATCH_RADIUS_SQR)
         continue;
 
       int pixelIndex = x + 200 * y;
@@ -164,22 +176,29 @@ void BowlWatchy::drawTime()
 
       float intensity = 0.0f;
       float specularIntensity = 0.0f;
-      float gloss = Gloss[pixelIndex];
+      char gloss = Gloss[pixelIndex];
+      float diffuse = Diffuse[pixelIndex];
 
-      BlinnPhong(point, normal, minuteLight, minuteHalfView, gloss, coneBaseMinute, coneBaseMinute1, coneBaseMinute2, intensity, specularIntensity);
-      BlinnPhong(point, normal, hourLight, hourHalfView, gloss, coneBaseHour, coneBaseHour1, coneBaseHour2, intensity, specularIntensity);
+      if (pointFromCenterSqrMagnitude > WATCH_RIM_RADIUS_SQR)
+      {
+        Vector3<float> pointFromCenterNormalized = pointFromCenter;
+        pointFromCenterNormalized.normalize();
+        float dot = Vector3<float>::dotProduct(UP, pointFromCenterNormalized) * 0.5f + 0.5f;
 
-      bool white = (intensity * Diffuse[pixelIndex] + specularIntensity) * 0.5f > BlueNoise200[pixelIndex];
+        if (batteryRange > dot)
+        {
+          diffuse = 0.0f;
+          gloss = 40;
+        }
+      }
+
+      BlinnPhong(point, normal, minuteLight, minuteHalfView, gloss, coneTipMinute, coneBaseMinute1, coneBaseMinute2, intensity, specularIntensity);
+      BlinnPhong(point, normal, hourLight, hourHalfView, gloss, coneTipHour, coneBaseHour1, coneBaseHour2, intensity, specularIntensity);
+
+      bool white = (intensity * diffuse + specularIntensity) * 0.5f > BlueNoise200[pixelIndex];
       display.drawPixel(x, y, white ? GxEPD_WHITE : GxEPD_BLACK);
     }
   }
   
   display.endWrite();
-
-  int battery = getBatteryFill(100);
-
-  display.setTextColor(GxEPD_BLACK);
-  display.setFont(&FreeMonoBold9pt7b);
-  display.setCursor(2,12);
-  display.print(battery);
 }

@@ -56,6 +56,16 @@ template<typename T> struct Vector3
         return sqrt(sqrMagnitude());
     }
 
+    static float lerp(const T& a, const T& b, const T& f)
+    {
+        return a + f * (b - a);
+    }
+
+    static Vector3 lerp(const Vector3& a, const Vector3& b, const float& v)
+    {
+        return {lerp(a.x, b.x, v), lerp(a.y, b.y, v), lerp(a.z, b.z, v)};
+    }
+
     void normalize()
     {
         double magnitude = Magnitude();
