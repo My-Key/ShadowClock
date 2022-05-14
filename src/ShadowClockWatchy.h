@@ -9,11 +9,11 @@
 #include "../include/BlueNoise200.h"
 #include "../include/GlossPow.h"
 
-class BowlWatchy : public Watchy
+class ShadowClockWatchy : public Watchy
 {
   using Watchy::Watchy;
 public:
-  BowlWatchy();
+  ShadowClockWatchy();
   void drawWatchFace();
   void drawTime();
 

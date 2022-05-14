@@ -1,4 +1,4 @@
-#include "BowlWatchy.h"
+#include "ShadowClockWatchy.h"
 
 const float VOLTAGE_MIN = 3.4f;
 const float VOLTAGE_MAX = 4.2f;
@@ -32,7 +32,7 @@ const Vector3<float> MINUTE_LIGHT_LOW = {0.0f,-1.0f,0.6f};
 const Vector3<float> HOUR_LIGHT = {0.0f,-0.5f,0.6f};
 const Vector3<float> HOUR_LIGHT_LOW = {0.0f,-0.75f,0.6f};
 
-void BowlWatchy::drawWatchFace()
+void ShadowClockWatchy::drawWatchFace()
 {
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
@@ -40,7 +40,7 @@ void BowlWatchy::drawWatchFace()
   drawTime();
 }
 
-int BowlWatchy::getBatteryFill(int steps)
+int ShadowClockWatchy::getBatteryFill(int steps)
 {
   float vbat = getBatteryVoltage();
 
@@ -108,7 +108,7 @@ const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<
   specularIntensity += GlossPow[(int)(clamp(NdotH) * 255) + 256 * gloss];
 }
 
-void BowlWatchy::drawTime()
+void ShadowClockWatchy::drawTime()
 {
   float batteryRange = (getBatteryVoltage() - VOLTAGE_MIN) / VOLTAGE_RANGE;
   float batteryRangeSmooth = smoothstep(batteryRange);

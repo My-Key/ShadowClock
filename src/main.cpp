@@ -3,7 +3,7 @@
 
 #include "settings.h"
 
-BowlWatchy watchy(settings);
+ShadowClockWatchy watchy(settings);
 
 void setup() {
   watchy.init();
