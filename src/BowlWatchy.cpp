@@ -94,11 +94,12 @@ static float smoothstep(float x) {
   return x * x * (3 - 2 * x);
 }
 
-static void BlinnPhong(const Vector3<float>& point, const Vector3<float>& normal, const Vector3<float>& lightDir, const Vector3<float>& halfView, const char& gloss, 
+static void BlinnPhong(const Vector3<float>& point, const float& pointFromCenterSqrMagnitude, const Vector3<float>& normal, const Vector3<float>& lightDir, 
+const Vector3<float>& halfView, const char& gloss, 
 const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<float>& coneBase3, float& intensity, float& specularIntensity)
 {
-  if ((point - CONE_CENTER).sqrMagnitude() > CONE_RADIUS_SQR && PointInTriangle(point, coneBase1, coneBase2, coneBase3))
-    return;
+  if (pointFromCenterSqrMagnitude > CONE_RADIUS_SQR && PointInTriangle(point, coneBase1, coneBase2, coneBase3))
+    return; // Point in shadow
 
   float NdotL = Vector3<float>::dotProduct(normal, lightDir);
   intensity += smoothstep(clamp(NdotL));
@@ -110,6 +111,7 @@ const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<
 void BowlWatchy::drawTime()
 {
   float batteryRange = (getBatteryVoltage() - VOLTAGE_MIN) / VOLTAGE_RANGE;
+  float batteryRangeSmooth = smoothstep(batteryRange);
 
   int hour = currentTime.Hour;
   int minute = currentTime.Minute;
@@ -185,15 +187,15 @@ void BowlWatchy::drawTime()
         pointFromCenterNormalized.normalize();
         float dot = Vector3<float>::dotProduct(UP, pointFromCenterNormalized) * 0.5f + 0.5f;
 
-        if (batteryRange > dot)
+        if (batteryRangeSmooth > dot)
         {
           diffuse = 0.0f;
           gloss = 40;
         }
       }
 
-      BlinnPhong(point, normal, minuteLight, minuteHalfView, gloss, coneTipMinute, coneBaseMinute1, coneBaseMinute2, intensity, specularIntensity);
-      BlinnPhong(point, normal, hourLight, hourHalfView, gloss, coneTipHour, coneBaseHour1, coneBaseHour2, intensity, specularIntensity);
+      BlinnPhong(point, pointFromCenterSqrMagnitude, normal, minuteLight, minuteHalfView, gloss, coneTipMinute, coneBaseMinute1, coneBaseMinute2, intensity, specularIntensity);
+      BlinnPhong(point, pointFromCenterSqrMagnitude, normal, hourLight, hourHalfView, gloss, coneTipHour, coneBaseHour1, coneBaseHour2, intensity, specularIntensity);
 
       bool white = (intensity * diffuse + specularIntensity) * 0.5f > BlueNoise200[pixelIndex];
       display.drawPixel(x, y, white ? GxEPD_WHITE : GxEPD_BLACK);
