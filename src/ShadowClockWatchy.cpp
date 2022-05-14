@@ -1,6 +1,6 @@
 #include "ShadowClockWatchy.h"
 
-const float VOLTAGE_MIN = 3.4f;
+const float VOLTAGE_MIN = 3.5f;
 const float VOLTAGE_MAX = 4.2f;
 const float VOLTAGE_RANGE = VOLTAGE_MAX - VOLTAGE_MIN;
 
@@ -27,7 +27,7 @@ const Vector3<float> CONE_TOP = CONE_CENTER + NORMAL_DIR * CONE_HEIGHT;
 const Vector3<float> VIEW_DIR = {0.0f, 0.0f, 1.0f};
 
 const Vector3<float> MINUTE_LIGHT = {0.0f,-0.75f,0.6f};
-const Vector3<float> MINUTE_LIGHT_LOW = {0.0f,-1.0f,0.6f};
+const Vector3<float> MINUTE_LIGHT_LOW = {0.0f,-1.2f,0.6f};
 
 const Vector3<float> HOUR_LIGHT = {0.0f,-0.5f,0.6f};
 const Vector3<float> HOUR_LIGHT_LOW = {0.0f,-0.75f,0.6f};
@@ -110,8 +110,8 @@ const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<
 
 void ShadowClockWatchy::drawTime()
 {
-  float batteryRange = (getBatteryVoltage() - VOLTAGE_MIN) / VOLTAGE_RANGE;
-  float batteryRangeSmooth = smoothstep(clamp(batteryRange));
+  float batteryRange = clamp((getBatteryVoltage() - VOLTAGE_MIN) / VOLTAGE_RANGE);
+  float batteryRangeSmooth = smoothstep(batteryRange);
 
   int hour = currentTime.Hour;
   int minute = currentTime.Minute;
