@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <BowlWatchy.h>
+#include <ShadowClockWatchy.h>
 
 #include "settings.h"
 

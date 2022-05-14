@@ -111,7 +111,7 @@ const Vector3<float>& coneBase1, const Vector3<float>& coneBase2, const Vector3<
 void ShadowClockWatchy::drawTime()
 {
   float batteryRange = (getBatteryVoltage() - VOLTAGE_MIN) / VOLTAGE_RANGE;
-  float batteryRangeSmooth = smoothstep(batteryRange);
+  float batteryRangeSmooth = smoothstep(clamp(batteryRange));
 
   int hour = currentTime.Hour;
   int minute = currentTime.Minute;
