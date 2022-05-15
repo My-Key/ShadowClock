@@ -6,7 +6,7 @@ This is a watch face for the open E-Ink display smartwatch [Watchy](https://watc
 ## Features
 
 - Display time.
-- Display battery state as dark ring surrounding clock.
+- Display battery state as dark ring surrounding clock and light sources angle
 
 ## Upload instructions
 
